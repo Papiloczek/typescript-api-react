@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>$ user-manager</title>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "JetBrains Mono", "Courier New", monospace;
+        background: #0a0a0a;
+        color: #00ff00;
+        min-height: 100vh;
+        padding: 20px;
+        line-height: 1.4;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: #1a1a1a;
+        border: 2px solid #333;
+        border-radius: 0;
+        padding: 20px;
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+      }
+
+      .terminal-header {
+        border-bottom: 1px solid #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+      }
+
+      h1 {
+        color: #00ff00;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 5px;
+      }
+
+      .prompt {
+        color: #888;
+        font-size: 14px;
+      }
+
+      .user-form {
+        background: #111;
+        border: 1px solid #333;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 0;
+      }
+
+      .form-title {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #888;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #333;
+        border-radius: 0;
+        font-size: 14px;
+        font-family: "JetBrains Mono", monospace;
+        background: #000;
+        color: #00ff00;
+        transition: border-color 0.2s ease;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #00ff00;
+        box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+      }
+
+      input::placeholder {
+        color: #444;
+      }
+
+      .btn {
+        background: #000;
+        color: #00ff00;
+        border: 1px solid #333;
+        padding: 8px 16px;
+        border-radius: 0;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        font-family: "JetBrains Mono", monospace;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        margin-right: 10px;
+      }
+
+      .btn:hover {
+        background: #00ff00;
+        color: #000;
+        border-color: #00ff00;
+      }
+
+      .btn-danger {
+        color: #ff4444;
+        border-color: #ff4444;
+      }
+
+      .btn-danger:hover {
+        background: #ff4444;
+        color: #000;
+      }
+
+      .btn-edit {
+        color: #ffff00;
+        border-color: #ffff00;
+      }
+
+      .btn-edit:hover {
+        background: #ffff00;
+        color: #000;
+      }
+
+      .users-list {
+        background: #111;
+        border: 1px solid #333;
+        padding: 15px;
+        border-radius: 0;
+      }
+
+      .list-title {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+      }
+
+      .user-item {
+        background: #000;
+        border: 1px solid #333;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: border-color 0.2s ease;
+      }
+
+      .user-item:hover {
+        border-color: #00ff00;
+      }
+
+      .user-info h3 {
+        color: #fff;
+        margin-bottom: 3px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .user-info p {
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 2px;
+      }
+
+      .user-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 30px;
+        color: #888;
+        font-size: 14px;
+      }
+
+      .error {
+        background: #2a0a0a;
+        color: #ff4444;
+        padding: 12px;
+        border: 1px solid #ff4444;
+        margin-bottom: 15px;
+        font-size: 12px;
+      }
+
+      .success {
+        background: #0a2a0a;
+        color: #00ff00;
+        padding: 12px;
+        border: 1px solid #00ff00;
+        margin-bottom: 15px;
+        font-size: 12px;
+      }
+
+      .edit-form {
+        background: #2a2a0a;
+        border-color: #ffff00;
+      }
+
+      .terminal-cursor {
+        animation: blink 1s infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0;
+        }
+      }
+
+      .status-line {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #333;
+        color: #888;
+        font-size: 12px;
+      }
+
+      .command-line {
+        margin-bottom: 10px;
+      }
+
+      .command-prompt {
+        color: #00ff00;
+      }
+
+      .command-text {
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      function App() {
+        const [users, setUsers] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState("");
+        const [success, setSuccess] = useState("");
+        const [newUser, setNewUser] = useState({ name: "", email: "" });
+        const [editingUser, setEditingUser] = useState(null);
+
+        // Pobierz użytkowników z API
+        const fetchUsers = async () => {
+          try {
+            setLoading(true);
+            const response = await fetch("http://localhost:3000/api/users");
+            if (!response.ok) throw new Error("connection refused");
+            const data = await response.json();
+            setUsers(data);
+            setError("");
+          } catch (err) {
+            setError("ERROR: " + err.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        // Dodaj nowego użytkownika
+        const addUser = async (e) => {
+          e.preventDefault();
+          if (!newUser.name || !newUser.email) {
+            setError("ERROR: missing required fields [name, email]");
+            return;
+          }
+
+          try {
+            const response = await fetch("http://localhost:3000/api/users", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(newUser),
+            });
+
+            if (!response.ok) throw new Error("failed to create user");
+
+            setSuccess("SUCCESS: user created successfully");
+            setNewUser({ name: "", email: "" });
+            fetchUsers();
+          } catch (err) {
+            setError("ERROR: " + err.message);
+          }
+        };
+
+        // Usuń użytkownika
+        const deleteUser = async (id) => {
+          if (!confirm("rm -rf user? [y/N]")) return;
+
+          try {
+            const response = await fetch(
+              `http://localhost:3000/api/users/${id}`,
+              {
+                method: "DELETE",
+              }
+            );
+
+            if (!response.ok) throw new Error("permission denied");
+
+            setSuccess("SUCCESS: user removed");
+            fetchUsers();
+          } catch (err) {
+            setError("ERROR: " + err.message);
+          }
+        };
+
+        // Rozpocznij edycję
+        const startEdit = (user) => {
+          setEditingUser({ ...user });
+        };
+
+        // Zapisz zmiany
+        const saveEdit = async (e) => {
+          e.preventDefault();
+
+          try {
+            const response = await fetch(
+              `http://localhost:3000/api/users/${editingUser.id}`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(editingUser),
+              }
+            );
+
+            if (!response.ok) throw new Error("write permission denied");
+
+            setSuccess("SUCCESS: user updated");
+            setEditingUser(null);
+            fetchUsers();
+          } catch (err) {
+            setError("ERROR: " + err.message);
+          }
+        };
+
+        // Załaduj użytkowników przy starcie
+        useEffect(() => {
+          fetchUsers();
+        }, []);
+
+        // Ukryj komunikaty po 3 sekundach
+        useEffect(() => {
+          if (success) {
+            const timer = setTimeout(() => setSuccess(""), 3000);
+            return () => clearTimeout(timer);
+          }
+        }, [success]);
+
+        return (
+          <div className="container">
+            <div className="terminal-header">
+              <h1>$ user-manager --interactive</h1>
+              <div className="prompt">
+                root@localhost:~/api# <span className="terminal-cursor">_</span>
+              </div>
+            </div>
+
+            {error && <div className="error">{error}</div>}
+            {success && <div className="success">{success}</div>}
+
+            {/* Formularz dodawania */}
+            <form
+              className={`user-form ${editingUser ? "edit-form" : ""}`}
+              onSubmit={editingUser ? saveEdit : addUser}
+            >
+              <div className="form-title">
+                {editingUser ? "> edit user" : "> create user"}
+              </div>
+
+              <div className="form-group">
+                <label>name:</label>
+                <input
+                  type="text"
+                  value={editingUser ? editingUser.name : newUser.name}
+                  onChange={(e) =>
+                    editingUser
+                      ? setEditingUser({ ...editingUser, name: e.target.value })
+                      : setNewUser({ ...newUser, name: e.target.value })
+                  }
+                  placeholder="enter name..."
+                />
+              </div>
+
+              <div className="form-group">
+                <label>email:</label>
+                <input
+                  type="email"
+                  value={editingUser ? editingUser.email : newUser.email}
+                  onChange={(e) =>
+                    editingUser
+                      ? setEditingUser({
+                          ...editingUser,
+                          email: e.target.value,
+                        })
+                      : setNewUser({ ...newUser, email: e.target.value })
+                  }
+                  placeholder="enter email..."
+                />
+              </div>
+
+              <button type="submit" className="btn">
+                {editingUser ? "save" : "create"}
+              </button>
+
+              {editingUser && (
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => setEditingUser(null)}
+                >
+                  cancel
+                </button>
+              )}
+            </form>
+
+            {/* Lista użytkowników */}
+            <div className="users-list">
+              <div className="list-title"> list users</div>
+
+              {loading ? (
+                <div className="loading">loading...</div>
+              ) : users.length === 0 ? (
+                <div className="loading">no users found</div>
+              ) : (
+                users.map((user) => (
+                  <div key={user.id} className="user-item">
+                    <div className="user-info">
+                      <h3>{user.name}</h3>
+                      <p>email: {user.email}</p>
+                      <p>id: {user.id}</p>
+                    </div>
+                    <div className="user-actions">
+                      <button
+                        className="btn btn-edit"
+                        onClick={() => startEdit(user)}
+                      >
+                        edit
+                      </button>
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => deleteUser(user.id)}
+                      >
+                        rm
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="status-line">
+              <div className="command-line">
+                <span className="command-prompt">$</span>{" "}
+                <span className="command-text">ps aux | grep user-manager</span>
+              </div>
+              <div>
+                status: connected to localhost:3000 | users: {users.length} |
+                uptime: {Math.floor(Date.now() / 1000)}s
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
+  </body>
+</html>
